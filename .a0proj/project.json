@@ -1,0 +1,16 @@
+{
+  "title": "data-layer-postgres",
+  "description": "Framework-agnostic PostgreSQL schema service for the data-layer stack. Owns the schema migrations, idempotent applier, postgres 18 cluster installer, schema-abstraction docs, and the cross-framework identity contract. Holds no framework-specific code (no Agent Zero plugin, no adapter glue). Wired into the data-layer umbrella via shell-out from `data-layer/bootstrap postgres`.",
+  "instructions": "## data-layer-postgres — Isolated Schema Engineering Workspace\n\nACTIVE WORKSPACE: /a0/usr/projects/data-layer/data-layer-postgres. This is the authoritative workspace for the postgres component of the data-layer stack: PostgreSQL 18 installer, append-only schema migrations, schema applier, schema-abstraction docs, and project-local evidence.\n\n## Scope and ownership\n\nThis project owns the postgres 18 cluster installer (`lib/postgres.sh`), the four append-only SQL migrations under `migrations/`, the idempotent applier (`lib/install.sh`), the schema-abstraction docs (`docs/schema-abstraction.md`), the ADRs under `docs/decisions/`, and project-local Agent Zero metadata. It does NOT own redis, falkordb, the framework adapters, or the data-layer umbrella — those live in their own sibling projects (`data-layer-redis/`, `data-layer-falkordb/`, `data-layer-adapters/`, and `../` respectively).\n\n## Isolation and security\n\nKeep plans, scripts, migrations, tests, docs, and evidence inside this workspace. Never write real secrets to source-controlled files; use `.env.example` for placeholders. Do not modify files in `/a0`, the parent `../data-layer/`, other sibling submodules, global plugins, system services, or live databases unless the user explicitly requests the integration and the side effect is reported.\n\n## Required workflow\n\nBefore consequential changes, read `README.md`, `docs/schema-abstraction.md`, `AGENTS.md`, `.a0proj/instructions/project-isolation.md`, and the affected migration. State the intended outcome and affected paths before implementation. Applied migrations are append-only: add a new numbered migration rather than rewriting an applied one. Keep deployment state separate from source.\n\n## Runtime boundary\n\nUse `/opt/venv-a0/bin/python` for Agent Zero framework and plugin-hook checks. Use `/opt/venv/bin/python` for task or user-code checks. Do not treat one runtime as proof of the other.\n\n## Canonical references\n\nREADME.md — commands and environment variables. `lib/postgres.sh` — PG18 cluster installer. `lib/install.sh` — migration applier (install | verify | status | reset). `migrations/` — schema history. `docs/schema-abstraction.md` — cross-framework abstraction contract. `docs/decisions/` — append-only ADRs.",
+  "include_agents_md": true,
+  "color": "",
+  "git_url": "https://github.com/NovaAI-innovation/data-layer-postgres",
+  "file_structure": {
+    "enabled": true,
+    "max_depth": 5,
+    "max_files": 20,
+    "max_folders": 20,
+    "max_lines": 250,
+    "gitignore": ""
+  }
+}

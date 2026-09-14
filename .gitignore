@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Secrets & state
+.a0proj/secrets.env
+.a0proj/memory/
+.a0proj/knowledge/fragments/
+*.faiss
+*.faiss.sha256
+*.pkl
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Backups
+*.tar.gz
+*.bak
