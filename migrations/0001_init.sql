@@ -298,15 +298,3 @@ CREATE TRIGGER trg_hooks_updated_at
 
 COMMIT;
 
-
--- ─────────────────────────────────────────────────────────────────────────
--- Seed (optional; comment out if running multiple times)
--- ─────────────────────────────────────────────────────────────────────────
---
--- INSERT INTO projects (project_key, display_name, description)
--- VALUES ('default', 'Default Project', 'Auto-created by 0001_init')
--- ON CONFLICT (project_key) DO NOTHING;
---
--- INSERT INTO agent_frameworks (kind, display_name, version)
--- VALUES ('agent_zero', 'Agent Zero', '2.11')
--- ON CONFLICT (kind) DO NOTHING;

@@ -18,7 +18,7 @@ fail() { printf '[postgres FAIL] %s\n' "$*" >&2; exit 3; }
 IN_DOCKER=0
 if [[ -f /.dockerenv || -f /run/.containerenv ]]; then IN_DOCKER=1; fi
 
-# Inside an Agent Zero container, postgresql is expected to be installed
+# Inside the data-layer container, postgresql is expected to be installed
 # already. Skip apt, just bring up the cluster.
 if [[ $IN_DOCKER -eq 0 ]] && command -v pg_lsclusters >/dev/null 2>&1 \
    && [[ -z "$(pg_lsclusters -h | awk '$1=="18"')" ]]; then
