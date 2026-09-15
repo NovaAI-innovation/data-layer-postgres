@@ -29,7 +29,7 @@ than rewriting an applied one. Keep deployment state separate from source.
 
 ## Runtime boundary
 
-Use `/opt/venv-a0/bin/python` for Agent Zero framework and plugin-hook
+Use `/opt/venv-a0/bin/python` for the framework runtime and plugin-hook
 checks. Use `/opt/venv/bin/python` for task or user-code checks. Do not
 treat one runtime as proof of the other.
 

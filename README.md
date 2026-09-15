@@ -21,10 +21,8 @@ data-layer-postgres/
 │   └── install.sh                      migration applier (install | verify | status | reset)
 ├── migrations/
 │   ├── 0001_init.sql                   10-table initial schema
-│   ├── 0002_seed.sql                   seed agent_zero framework row + default project
-│   ├── 0003_alter_agents.sql           add agents.deployment column + rebuild unique key
-│   └── 0004_seed_hermes.sql            seed Hermes agent row (deployment='hermes')
-├── tests/smoke.sh                     verify the schema is reachable
+│   ├── │   ├── 0003_alter_agents.sql           add agents.deployment column + rebuild unique key
+│   └── ├── tests/smoke.sh                     verify the schema is reachable
 ├── README.md
 ├── AGENTS.md
 ├── .env.example
@@ -59,11 +57,19 @@ bash tests/smoke.sh
 
 ## Status
 
-Schema is fully migrated. The four migrations create a 10-table framework-
-agnostic schema: `projects`, `agent_frameworks`, `agents`, `agent_skills`,
+Schema is fully migrated. Three migrations land a 10-table framework-agnostic
+schema: `projects`, `agent_frameworks`, `agents`, `agent_skills`,
 `agent_plugins`, `available_tools`, `hooks`, `sessions`, `messages`,
 `tool_executions` — with the cross-framework identity contract on
-`agents.framework_local_id` + `agents.deployment`.
+`agents.framework_local_id` + `agents.deployment`, an
+`agents.framework_id` FK to `agent_frameworks`, and (via migration 0003)
+a pgvector-backed `messages.embedding vector(1536)` column with an HNSW
+index for vector similarity search.
+
+This submodule is scoped strictly to the postgres persistence database.
+Framework-specific code (plugin glue, prompts, MCP wiring) and DB seed
+rows live in `data-layer-adapters/<framework>/`. The FAISS memory cache
+sits at the agent runtime level (`.a0proj/memory/`, gitignored).
 ## pgvector
 
 Migration `migrations/0003_pgvector.sql` enables the `vector` extension and adds an `embedding vector(1536)` column on `messages` with an HNSW index (`idx_messages_embedding_hnsw`, vector_cosine_ops). FAISS at `.a0proj/memory/` is the primary in-process cache; pgvector is the durable recall path.
