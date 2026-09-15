@@ -44,6 +44,26 @@ else
     log "postgres 18 already present, skipping apt install"
 fi
 
+# ---- always ensure pgvector apt package is present (regardless of whether
+#      we just apt-installed postgres or it was already there) ----
+if command -v apt-get >/dev/null 2>&1; then
+  if ! dpkg -s postgresql-18-pgvector >/dev/null 2>&1; then
+    log "installing pgvector package (postgresql-18-pgvector)"
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get install -y -qq postgresql-18-pgvector || {
+      log "apt install of pgvector failed; ensure PGDG repo is configured"
+      apt-get install -y -qq curl ca-certificates gnupg lsb-release
+      . /etc/os-release
+      echo "deb http://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+      curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+      apt-get update -qq
+      apt-get install -y -qq postgresql-18-pgvector
+    }
+  else
+    log "pgvector package already present"
+  fi
+fi
+
 # ---- ensure cluster exists ----
 if ! pg_lsclusters -h | awk '$1=="18"{found=1} END{exit !found}'; then
     log "creating cluster 18/main"
