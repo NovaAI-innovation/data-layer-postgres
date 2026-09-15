@@ -64,3 +64,6 @@ agnostic schema: `projects`, `agent_frameworks`, `agents`, `agent_skills`,
 `agent_plugins`, `available_tools`, `hooks`, `sessions`, `messages`,
 `tool_executions` — with the cross-framework identity contract on
 `agents.framework_local_id` + `agents.deployment`.
+## pgvector
+
+Migration `migrations/0003_pgvector.sql` enables the `vector` extension and adds an `embedding vector(1536)` column on `messages` with an HNSW index (`idx_messages_embedding_hnsw`, vector_cosine_ops). FAISS at `.a0proj/memory/` is the primary in-process cache; pgvector is the durable recall path.
