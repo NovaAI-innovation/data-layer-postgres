@@ -14,6 +14,12 @@ MIG_DIR="$ROOT/migrations"
 # DSN resolution: prefer explicit env, fall back to defaults the cluster installer creates.
 DSN="${DATA_LAYER_POSTGRES_DSN:-${PSQL_DSN:-postgresql://postgres@localhost:5432/postgres}}"
 
+# Dry-run mode: 1 = print what would happen, do NOT mutate. Operators
+# set DATA_LAYER_DRY_RUN=1 or pass `bash install.sh check` / `--dry-run`
+# to safely preview an install against a live DB before committing.
+# The verifier path (verify/status/reset/help) is unaffected.
+DRY_RUN="${DATA_LAYER_DRY_RUN:-0}"
+
 log()  { printf '[postgres %s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 fail() { printf '[postgres FAIL] %s\n' "$*" >&2; exit 3; }
 
@@ -36,6 +42,10 @@ apply_migration() {
   applied=$(run_sql "SELECT version FROM schema_migrations WHERE version='$version'")
   if [[ -n "$applied" ]]; then
     log "$version already applied, skipping"
+    return 0
+  fi
+  if [[ "$DRY_RUN" == "1" ]]; then
+    log "DRY_RUN: would apply $version from $file"
     return 0
   fi
   log "applying $version"
@@ -107,6 +117,12 @@ apply_agent_zero_grants() {
   # ones). CREATE DATABASE is issued on an autocommit connection
   # because it cannot run inside a transaction. Re-runs are safe:
   # every step is either an IF-NOT-EXISTS check or a no-op GRANT.
+  # Dry-run gate. Placed BEFORE the env-var assignments so the
+  # `\` line-continuations that follow parse cleanly.
+  if [[ "$DRY_RUN" == "1" ]]; then
+    log "DRY_RUN: would create role/db/grants for agent_zero"
+    return 0
+  fi
   DATA_LAYER_POSTGRES_DSN="$DSN" \
   DATA_LAYER_AGENT_ZERO_PASSWORD="${DATA_LAYER_AGENT_ZERO_PASSWORD}" \
   PYTHON_BIN=""; for cand in ${PYTHON_BIN_OVERRIDE:-} /opt/venv/bin/python /opt/venv-a0/bin/python python3 python; do
@@ -236,6 +252,15 @@ Environment:
   DATA_LAYER_AGENT_ZERO_PASSWORD      tenant password (required for install when migrations are missing role/db/grants)
 USAGE
 }
+
+# Translate the dry-run aliases to "install" + DRY_RUN=1 before
+# the case dispatch. Allows `bash install.sh check` / `--dry-run`
+# etc. to reuse the install path without any mutations.
+if [[ "${1:-}" == "check" || "${1:-}" == "--check" || "${1:-}" == "dry-run" || "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=1
+  set -- install
+  log "dry-run mode: no mutations will be performed"
+fi
 
 case "${1:-help}" in
   install)
