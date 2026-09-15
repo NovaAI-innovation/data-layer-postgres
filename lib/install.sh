@@ -39,18 +39,18 @@ apply_migration() {
     return 0
   fi
   log "applying $version"
-  run_sql "BEGIN; \$(cat "$file"); COMMIT;" >/dev/null
+  # Use psql -f so the file is executed as a script (multi-statement OK).
+  psql "$DSN" -v ON_ERROR_STOP=1 -X -q -f "$file" >/dev/null
   run_sql "INSERT INTO schema_migrations(version) VALUES('$version')" >/dev/null
   log "$version applied"
 }
 
 verify_tables() {
-  for t in projects agent_frameworks agents sessions messages tool_executions \n           agent_skills agent_plugins available_tools hooks; do
-    local exists
-    exists=$(run_sql "SELECT 1 FROM information_schema.tables
-                       WHERE table_schema='public' AND table_name='$t'")
-    [[ -n "$exists" ]] || fail "table $t missing after migration"
-  done
+  local found
+  found=$(run_sql "SELECT count(*) FROM information_schema.tables
+                    WHERE table_schema='public'
+                      AND table_name IN ('projects','agent_frameworks','agents','sessions','messages','tool_executions','agent_skills','agent_plugins','available_tools','hooks')")
+  [[ "$found" -ge 10 ]] || fail "expected 10 business tables; found $found"
   log "all 10 business tables present"
 }
 
