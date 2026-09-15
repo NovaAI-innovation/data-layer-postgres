@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib/postgres.sh - Install + init PostgreSQL 18 (idempotent).
 #
-# On a fresh Debian/Ubuntu host: apt-install postgresql-18, init cluster,
+# On a fresh Debian/Ubuntu host: apt-install postgresql-18, init cluster, postgresql-18-pgvector
 # start it, set the postgres password, enable localhost listen.
 # On an existing host (already has postgres 18): skip install, just verify
 # the cluster is online and the password matches POSTGRES_PASSWORD.

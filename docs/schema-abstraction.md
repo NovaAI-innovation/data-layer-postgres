@@ -60,6 +60,13 @@ agnostic.
 8. `sessions` — runtime windows for an agent. UNIQUE (agent_id, session_key).
 9. `messages` — all agent traffic, either direction. Direction ∈ {in, out}.
 10. `tool_executions` — every tool call as a durable record.
+11. `pgvector` — when migration 0003 has been applied, the `vector`
+    extension is enabled, `messages.embedding vector(1536)` is
+    available, and an HNSW index `idx_messages_embedding_hnsw`
+    (vector_cosine_ops) supports approximate nearest-neighbour
+    recall at the database level. The FAISS cache at
+    `.a0proj/memory/` remains the primary in-process recall path;
+    pgvector is the durable second-tier recall.
 
 Plus a `schema_migrations` tracker table maintained by the applier.
 

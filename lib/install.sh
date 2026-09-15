@@ -54,6 +54,23 @@ verify_tables() {
   log "all 10 business tables present"
 }
 
+
+
+verify_extensions() {
+  local exts
+  exts=$(run_sql "SELECT extname FROM pg_extension WHERE extname IN ('uuid-ossp','vector')")
+  echo "$exts" | grep -qx uuid-ossp || fail "extension uuid-ossp missing"
+  echo "$exts" | grep -qx vector    || fail "extension vector (pgvector) missing"
+  log "extensions uuid-ossp + vector present"
+}
+
+verify_embedding_index() {
+  local idx
+  idx=$(run_sql "SELECT 1 FROM pg_indexes WHERE indexname='idx_messages_embedding_hnsw'")
+  [[ -n "$idx" ]] || fail "HNSW index idx_messages_embedding_hnsw missing"
+  log "HNSW index on messages.embedding present"
+}
+
 usage() {
   cat <<USAGE
 Usage: $0 <install|verify|status|reset>
@@ -78,6 +95,8 @@ case "${1:-help}" in
   verify)
     ensure_tracker
     verify_tables
+    verify_extensions
+    verify_embedding_index
     log "verify ok"
     ;;
   status)
