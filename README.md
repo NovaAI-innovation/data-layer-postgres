@@ -72,4 +72,6 @@ rows live in `data-layer-adapters/<framework>/`. The FAISS memory cache
 sits at the agent runtime level (`.a0proj/memory/`, gitignored).
 ## pgvector
 
-Migration `migrations/0003_pgvector.sql` enables the `vector` extension and adds an `embedding vector(1536)` column on `messages` with an HNSW index (`idx_messages_embedding_hnsw`, vector_cosine_ops). FAISS at `.a0proj/memory/` is the primary in-process cache; pgvector is the durable recall path.
+Migration `migrations/0003_pgvector.sql` enables the `vector` extension and adds an `embedding vector(1536)` column on `messages` with an HNSW index (`idx_messages_embedding_hnsw`, vector_cosine_ops), tuned for higher recall at modest build cost (`m = 24`, `ef_construction = 128`). Autovacuum is tightened (`autovacuum_vacuum_scale_factor = 0.05`) so HNSW maintenance triggers earlier. A `match_messages(query_embedding, match_threshold, match_count)` SQL helper function provides ergonomic recall, with a configurable `hnsw.ef_search` per query (default 100) for higher query-time recall.
+
+FAISS at `.a0proj/memory/` is the primary in-process cache; pgvector is the durable recall path.

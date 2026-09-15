@@ -64,6 +64,15 @@ verify_extensions() {
   log "extensions uuid-ossp + vector present"
 }
 
+
+
+verify_helpers() {
+  local fn
+  fn=$(run_sql "SELECT 1 FROM pg_proc WHERE proname='match_messages'")
+  [[ -n "$fn" ]] || fail "helper function match_messages missing"
+  log "helper function match_messages present"
+}
+
 verify_embedding_index() {
   local idx
   idx=$(run_sql "SELECT 1 FROM pg_indexes WHERE indexname='idx_messages_embedding_hnsw'")
@@ -97,6 +106,7 @@ case "${1:-help}" in
     verify_tables
     verify_extensions
     verify_embedding_index
+    verify_helpers
     log "verify ok"
     ;;
   status)

@@ -63,10 +63,16 @@ agnostic.
 11. `pgvector` — when migration 0003 has been applied, the `vector`
     extension is enabled, `messages.embedding vector(1536)` is
     available, and an HNSW index `idx_messages_embedding_hnsw`
-    (vector_cosine_ops) supports approximate nearest-neighbour
-    recall at the database level. The FAISS cache at
-    `.a0proj/memory/` remains the primary in-process recall path;
-    pgvector is the durable second-tier recall.
+    (vector_cosine_ops, m=24, ef_construction=128) supports
+    approximate nearest-neighbour recall at the database level
+    with tuned parameters. Autovacuum is tightened
+    (`autovacuum_vacuum_scale_factor = 0.05`) for HNSW maintenance.
+    A `match_messages(query_embedding, match_threshold, match_count)`
+    SQL helper function provides ergonomic recall, with a
+    configurable `hnsw.ef_search` per query (default 100) for higher
+    query-time recall. The FAISS cache at `.a0proj/memory/` remains
+    the primary in-process recall path; pgvector is the durable
+    second-tier recall.
 
 Plus a `schema_migrations` tracker table maintained by the applier.
 
