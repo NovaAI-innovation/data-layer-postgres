@@ -149,6 +149,7 @@ apply_agent_zero_grants() {
   exec "$PYTHON_BIN" - <<'PY'
 import os
 import psycopg
+import psycopg.sql
 from psycopg import errors
 
 DSN = os.environ["DATA_LAYER_POSTGRES_DSN"]
@@ -163,10 +164,16 @@ with psycopg.connect(DSN, autocommit=True) as conn:
         cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (ROLE,))
         if cur.fetchone() is None:
             say(f"creating role {ROLE}")
-            # Role/db names are hardcoded literals (no user input),
-            # so inline them directly. The password is parameter-
-            # bound via %s so it round-trips safely.
-            cur.execute("CREATE ROLE agent_zero WITH LOGIN PASSWORD %s", (PW,))
+            # CREATE ROLE does NOT accept parameter placeholders
+            # for the password literal — same class of bug as
+            # SET LOCAL. Use psycopg.sql.SQL + Literal to safely
+            # inline the password (psycopg.Literal handles quoting
+            # of special characters in the password).
+            cur.execute(
+                psycopg.sql.SQL("CREATE ROLE agent_zero WITH LOGIN PASSWORD {}").format(
+                    psycopg.sql.Literal(PW)
+                )
+            )
         else:
             say(f"role {ROLE} present")
 
